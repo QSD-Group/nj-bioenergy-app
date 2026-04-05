@@ -266,17 +266,14 @@ function clearValuesEcerywhere() {
 // internal function, used to get info about a county depending on the waste type
 // info here will be used on the info top section and comparison section
 async function getInfo(county) {
-    // combustion/county?county_name=county_name&waste_type=waste_type
     const url = `${API_BASE_URL}/api/v1/combustion/county?county_name=${county}&waste_type=${wasteType}`;
     console.log(wasteType);
     try {
-        const response = await fetch(url);
-        const data = await response.json();
+        const data = await fetchWithRetry(url);
         console.log(data);
         currentCountyData = data;
         return data;
-    }
-    catch (error) {
+    } catch (error) {
         console.log(error);
         return null;
     }
@@ -348,17 +345,13 @@ function displayComparisonHelper(data, row){
 
 // function to get the manual info
 async function getManualInfo(manualInput){
-    // combustion/calc?mass=mass&unit=unit&waste_type=waste_type
     const url = `${API_BASE_URL}/api/v1/combustion/calc?mass=${manualInput}&unit=${wasteTypeUnit}&waste_type=${wasteType}`;
-
     try {
-        const response = await fetch(url);
-        const data = await response.json();
+        const data = await fetchWithRetry(url);
         console.log(data);
         manualData = data;
         return data;
-    }
-    catch (error) {
+    } catch (error) {
         console.log("There was a problem with the fetch operation:", error);
         return null;
     }
@@ -440,4 +433,47 @@ function reformDataPerUnits(data){
     emissions = emissions.toFixed(3); // round to 3 decimal places
 
     return {mass, electricity, emissions, percent}; // return the reformatted data
+}
+
+const NJ_COUNTIES = ['Sussex','Passaic','Bergen','Warren','Morris','Essex','Hunterdon','Somerset','Union','Mercer','Hudson','Middlesex','Camden','Gloucester','Burlington','Salem','Cumberland','Cape+May','Atlantic','Ocean','Monmouth'];
+
+function downloadCsv(filename, rows) {
+    const csv = rows.map(r => r.join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+async function exportToCsvMain() {
+    try {
+        const results = await Promise.all(
+            NJ_COUNTIES.map(c => fetchWithRetry(`${API_BASE_URL}/api/v1/combustion/county?county_name=${c}&waste_type=${wasteType}`))
+        );
+        const rows = [['County', 'Waste Type', 'Mass (kg/hr)', 'Electricity (MWh/yr)', 'Avoided Emissions (million metric tonnes CO2e)', 'NJ Emissions (%)']];
+        results.forEach(d => rows.push([d.county_name, d.waste_type, d.mass, d.electricity, d.emissions, (d.percent * 100).toFixed(2)]));
+        downloadCsv(`nj_combustion_${wasteType}.csv`, rows);
+        document.getElementById("errorExport").innerHTML = "";
+    } catch (error) {
+        document.getElementById("errorExport").innerHTML = `<span class='error'>Error exporting data: ${error}</span>`;
+    }
+}
+
+async function exportToCsvCounty() {
+    if (currentCounty === null) {
+        document.getElementById("errorExport").innerHTML = "<span class='error'> Please click on a county first </span>";
+        return;
+    }
+    const d = currentCountyData;
+    const rows = [
+        ['County', 'Waste Type', 'Mass (kg/hr)', 'Electricity (MWh/yr)', 'Avoided Emissions (million metric tonnes CO2e)', 'NJ Emissions (%)'],
+        [d.county_name, d.waste_type, d.mass, d.electricity, d.emissions, (d.percent * 100).toFixed(2)]
+    ];
+    downloadCsv(`${currentCounty.toLowerCase()}_combustion_${wasteType}.csv`, rows);
+    document.getElementById("errorExport").innerHTML = "";
 }

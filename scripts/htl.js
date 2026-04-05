@@ -140,17 +140,11 @@ async function getInfo(county) {
     console.log(unit);
     const url = `${API_BASE_URL}/api/v1/htl/county?county_name=${county}`;
     try {
-        const response = await fetch(url);
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-        const data = await response.json();
+        const data = await fetchWithRetry(url);
         console.log(data);
         currentCountyData = data;
         return data;
-    }
-
-    catch (error) {
+    } catch (error) {
         console.error('There was a problem with the fetch operation:', error);
         return null;
     }
@@ -225,21 +219,13 @@ function displayComparisonHelper(data, row){
 
 // this function is used to get manual sludge data
 async function getManualInfo(sludge) {
-    // ${API_BASE_URL}/api/v1/htl/calc?sludge=100&unit=mgd
     const url = `${API_BASE_URL}/api/v1/htl/calc?sludge=${sludge}&unit=${sludgeUnit}`;
-
     try {
-        const response = await fetch(url);
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-        const data = await response.json();
+        const data = await fetchWithRetry(url);
         console.log(data);
         manualData = data;
         return data;
-    }
-
-    catch (error) {
+    } catch (error) {
         console.error('There was a problem with the fetch operation:', error);
         return null;
     }
@@ -331,29 +317,32 @@ function reformDataPerUnits(data) {
     return {sludge, price, gwp}; // return the values in an object
 }
 
-// Getting the two CSV functions
+const NJ_COUNTIES = ['Sussex','Passaic','Bergen','Warren','Morris','Essex','Hunterdon','Somerset','Union','Mercer','Hudson','Middlesex','Camden','Gloucester','Burlington','Salem','Cumberland','Cape+May','Atlantic','Ocean','Monmouth'];
+
+function downloadCsv(filename, rows) {
+    const csv = rows.map(r => r.join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
 async function exportToCsvMain() {
     try {
-        const options = {
-            headers: {
-                'X-Unit': unit
-            }
-        };
-        const response = await fetch(`${API_BASE_URL}/csv`, options);
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-        const blob = await response.blob();
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'export.csv';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-    }
-    catch (error) {
-        console.error('There was a problem with the fetch operation:', error);
+        const results = await Promise.all(
+            NJ_COUNTIES.map(c => fetchWithRetry(`${API_BASE_URL}/api/v1/htl/county?county_name=${c}`))
+        );
+        const rows = [['County', 'Sludge (kg/hr)', 'Price ($/gal)', 'GWP (lb CO2e/gal)']];
+        results.forEach(d => rows.push([d.county_name, d.sludge, d.price, d.gwp]));
+        downloadCsv('nj_htl.csv', rows);
+        document.getElementById("errorExport").innerHTML = "";
+    } catch (error) {
+        document.getElementById("errorExport").innerHTML = `<span class='error'>Error exporting data: ${error}</span>`;
     }
 }
 
@@ -362,32 +351,13 @@ async function exportToCsvCounty() {
         document.getElementById("errorExport").innerHTML = "<span class='error'> Please click on a county first </span>";
         return;
     }
-    try {
-        const options = {
-            headers: {
-                'X-Unit': unit
-            }
-        };
-        const response = await fetch(`${API_BASE_URL}/csv/${currentCounty}`, options);
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-        const blob = await response.blob();
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${currentCounty.toLowerCase()}_county_export.csv`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        document.getElementById("errorMass").innerHTML = "<b></b>";
-        document.getElementById("errorExport").innerHTML = "<b></b>";
-
-    }
-    catch (error) {
-        console.error('There was a problem with the fetch operation:', error);
-    }
-
+    const d = currentCountyData;
+    const rows = [
+        ['County', 'Sludge (kg/hr)', 'Price ($/gal)', 'GWP (lb CO2e/gal)'],
+        [d.county_name, d.sludge, d.price, d.gwp]
+    ];
+    downloadCsv(`${currentCounty.toLowerCase()}_htl.csv`, rows);
+    document.getElementById("errorExport").innerHTML = "";
 }
 
 

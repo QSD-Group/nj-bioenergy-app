@@ -1,3 +1,22 @@
+// Retry a fetch up to `retries` times with `delay` ms between attempts
+async function fetchWithRetry(url, retries = 3, delay = 2000) {
+    for (let i = 0; i < retries; i++) {
+        try {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const data = await response.json();
+            if (data === null) throw new Error('Null response');
+            return data;
+        } catch (error) {
+            if (i < retries - 1) {
+                await new Promise(res => setTimeout(res, delay));
+            } else {
+                throw new Error(`Failed after ${retries} attempts: ${error.message}`);
+            }
+        }
+    }
+}
+
 // load sidebar/navbar
 document.addEventListener('DOMContentLoaded', function() {
     // Fetch the navbar
