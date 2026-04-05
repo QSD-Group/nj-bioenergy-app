@@ -99,16 +99,16 @@ function updateUnitsEverywhere() {
             document.getElementById('manualInput').max = 1e5; // 100,000 tonnes
             document.getElementById('manualInput').placeholder = "1-100,000";    
             break;
-        case "MGD":
+        case "mgd":
             document.getElementById("wastetype-tool").innerHTML = "Million gallons per day of waste";
             document.getElementById("r0-wasteunit").innerHTML = "(MGD)";
 
             document.getElementById('manualInput').min = 1; // 1 MGD
             document.getElementById('manualInput').max = 2000; // 2000 MGD
-            document.getElementById('manualInput').placeholder = "1-2000";    
+            document.getElementById('manualInput').placeholder = "1-2000";
 
             break;
-        case "m3/d":
+        case "m3d":
             document.getElementById("wastetype-tool").innerHTML = "Cubic meters per day of waste";
             document.getElementById("r0-wasteunit").innerHTML = "(m3/d)";
 
@@ -223,8 +223,8 @@ function getDropDownText(no){
         case 2:
             // this is for sludge
             return `
-                <option value="MGD">MGD</option>
-                <option value="m3/d">m³/d</option>
+                <option value="mgd">MGD</option>
+                <option value="m3d">m³/d</option>
             `
     }
 }
@@ -407,11 +407,11 @@ function reformDataPerUnits(data){
             mass = mass * (24*365) / 1000; // convert to metric tonnes
             mass = mass.toFixed(0); // since it is a big number, round it to 0 decimal places
             break;
-        case "MGD":
+        case "mgd":
             mass = (mass * 24)/(MGDtokg); // convert to MGD
             mass = mass.toFixed(3); // round to 3 decimal places
             break;
-        case "m3/d":
+        case "m3d":
             mass = (mass * 24)/(MGDtokg); // convert to MGD
             mass = mass * galToM3 * 1e6; // convert to m3/d
             mass = mass.toFixed(0); // round to 0 decimal places

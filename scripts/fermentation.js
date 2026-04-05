@@ -352,7 +352,7 @@ async function exportToCsvMain() {
                 'X-Unit': unit
             }
         };
-        const response = await fetch('${API_BASE_URL}/csv', options);
+        const response = await fetch(`${API_BASE_URL}/csv`, options);
         if (!response.ok) {
             throw new Error('Network response was not ok');
         }

@@ -2,7 +2,7 @@ const API_BASE_URL = ENV.API_BASE_URL;
 
 // when the unit button is clicked
 
-var sludgeUnit = "MGD";
+var sludgeUnit = "mgd";
 var priceUnit = "$/gal";
 var gwpUnit = "lb CO2/gal";
 
@@ -10,7 +10,7 @@ function changeSettings(unit) {
     if (unit == "imperial") {
 
         // change the unit values
-        sludgeUnit = "MGD"
+        sludgeUnit = "mgd"
         priceUnit = "$/gal"
         gwpUnit = "lb CO2/gal"
 
@@ -19,7 +19,7 @@ function changeSettings(unit) {
     else if (unit == "metric") {
 
         // change the unit values
-        sludgeUnit = "m3/d"
+        sludgeUnit = "m3d"
         priceUnit = "$/kg"
         gwpUnit = "kg CO2/kg"
 
@@ -68,15 +68,15 @@ function updateUnitsEverywhere() {
     1. the comparison table headers
     2. the tool tips in the top info div */
     switch (sludgeUnit) {
-        case "MGD":
+        case "mgd":
             document.getElementById('r0-sludge').innerHTML = 'Sludge (MGD)';
             document.getElementById('sludge-tool').innerHTML = 'Holding capacity in million gallons a day';
 
             document.getElementById('manualInput').min = 1;
             document.getElementById('manualInput').max = 2000;
-            document.getElementById('manualInput').placeholder = "1-2000";    
+            document.getElementById('manualInput').placeholder = "1-2000";
             break;
-        case "m3/d":
+        case "m3d":
             document.getElementById('r0-sludge').innerHTML = 'Sludge (m3/d)';
             document.getElementById('sludge-tool').innerHTML = 'Holding capacity in cubic meters a day';
 
@@ -280,12 +280,12 @@ function reformDataPerUnits(data) {
 
     // change the units based on the units selected
     switch (sludgeUnit) {
-        case "MGD":
+        case "mgd":
             // million gallons per day
             sludge = sludge * 24 / (3.78541 * 1e6); // convert to kg/hr
             sludge = sludge.toFixed(3); // round to 3 decimal places, since it is a smaller number
             break;
-        case "m3/d":
+        case "m3d":
             sludge = sludge * 24 / 1000; // 1 m³ = 1000 kg, convert hourly to daily
             sludge = sludge.toFixed(0);
             break;
@@ -339,7 +339,7 @@ async function exportToCsvMain() {
                 'X-Unit': unit
             }
         };
-        const response = await fetch('${API_BASE_URL}/csv', options);
+        const response = await fetch(`${API_BASE_URL}/csv`, options);
         if (!response.ok) {
             throw new Error('Network response was not ok');
         }
