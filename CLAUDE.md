@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a static frontend for the **QSDSan New Jersey Biomass Processing Technologies** portal — a tool for exploring bioenergy/biochemical potentials from organic wastes across New Jersey counties. There is no build step; it runs directly in a browser by opening the HTML files or serving them via a local HTTP server.
+This is a static frontend for the **New Jersey Bioenergy** portal — a tool for exploring bioenergy/biochemical potentials from organic wastes across New Jersey counties. There is no build step; it runs directly in a browser by opening the HTML files or serving them via a local HTTP server.
 
 ## Development
 
@@ -23,7 +23,7 @@ There are no package managers, bundlers, linters, or test frameworks. All JS is 
 
 **Script loading order matters:** Every technology page loads scripts in this order:
 1. `script.js` — shared map logic, sidebar toggle, county click state machine, manual input handler
-2. `env.js` — defines `ENV.API_BASE_URL` (currently `https://api.qsdsan.app`)
+2. `env.js` — defines `ENV.API_BASE_URL` (currently `https://nj-bioenergy-api.apps.qsdsan.com`)
 3. `scripts/<technology>.js` — technology-specific API calls and unit conversions
 
 **Shared assets injected at runtime:** `script.js` fetches and injects HTML fragments on `DOMContentLoaded`:
@@ -38,8 +38,8 @@ There are no package managers, bundlers, linters, or test frameworks. All JS is 
 
 ## API
 
-**Base URL:** `https://api.qsdsan.app/api/v1` (set in `env.js`)  
-**Interactive docs:** `https://api.qsdsan.app/docs`
+**Base URL:** `https://nj-bioenergy-api.apps.qsdsan.com/api/v1` (set in `env.js`)  
+**Interactive docs:** `https://nj-bioenergy-api.apps.qsdsan.com/docs`
 
 ### Endpoints
 

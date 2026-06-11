@@ -1,5 +1,5 @@
 const ENV = {
-    API_BASE_URL: "https://api.qsdsan.app"
-    // http://13.58.112.223:5000
+    API_BASE_URL: "https://nj-bioenergy-api.apps.qsdsan.com"
+    // previous backend (being retired): https://api.qsdsan.app
   };
   
