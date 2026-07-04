@@ -427,8 +427,10 @@ input {
     }
 }
 
-/* outage banner — see assets/banner.html for removal instructions */
-.outage-banner {
+/* outage notice — see assets/outage-notice.html for removal instructions.
+   Named "outage-notice", not "banner": ad-blocker cosmetic filters commonly
+   target id/class names containing "banner" and will remove the element. */
+.outage-notice {
     width: 100%;
     box-sizing: border-box;
     background-color: #fff3cd;
@@ -439,6 +441,6 @@ input {
     font-size: 15px;
 }
 
-.outage-icon {
+.outage-notice-icon {
     margin-right: 6px;
 }
