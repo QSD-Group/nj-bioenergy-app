@@ -426,3 +426,19 @@ input {
         right: 10px;
     }
 }
+
+/* outage banner — see assets/banner.html for removal instructions */
+.outage-banner {
+    width: 100%;
+    box-sizing: border-box;
+    background-color: #fff3cd;
+    color: #664d03;
+    border-bottom: 1px solid #ffe69c;
+    text-align: center;
+    padding: 10px 20px;
+    font-size: 15px;
+}
+
+.outage-icon {
+    margin-right: 6px;
+}

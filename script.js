@@ -19,6 +19,14 @@ async function fetchWithRetry(url, retries = 3, delay = 2000) {
 
 // load sidebar/navbar
 document.addEventListener('DOMContentLoaded', function() {
+    // === OUTAGE BANNER — remove this block once the Lambda cutover is live and the backend is serving again ===
+    fetch('assets\\banner.html')
+        .then(response => response.text())
+        .then(data => {
+            document.getElementById('banner-placeholder').innerHTML = data;
+        });
+    // === END OUTAGE BANNER ===
+
     // Fetch the navbar
     fetch('assets\\navbar.html')
         .then(response => response.text())
