@@ -275,7 +275,7 @@ async function getInfo(county) {
         return data;
     } catch (error) {
         console.log(error);
-        return null;
+        throw error;
     }
 }
 
@@ -353,7 +353,7 @@ async function getManualInfo(manualInput){
         return data;
     } catch (error) {
         console.log("There was a problem with the fetch operation:", error);
-        return null;
+        throw error;
     }
 }
 
