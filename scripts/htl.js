@@ -269,11 +269,11 @@ function reformDataPerUnits(data) {
         case "mgd":
             // million gallons per day
             sludge = sludge * 24 / (3.78541 * 1e6); // convert to kg/hr
-            sludge = sludge.toFixed(3); // round to 3 decimal places, since it is a smaller number
+            sludge = toSigFigs(sludge);
             break;
         case "m3d":
             sludge = sludge * 24 / 1000; // 1 m³ = 1000 kg, convert hourly to daily
-            sludge = sludge.toFixed(0);
+            sludge = toSigFigs(sludge);
             break;
     }
 
@@ -311,8 +311,8 @@ function reformDataPerUnits(data) {
             break;
     }
 
-    price = price.toFixed(3); // round to 3 decimal places
-    gwp = gwp.toFixed(3); // round to 3 decimal places
+    price = toSigFigs(price);
+    gwp = toSigFigs(gwp);
 
     return {sludge, price, gwp}; // return the values in an object
 }

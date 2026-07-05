@@ -320,10 +320,10 @@ function reformDataPerUnits(data) {
             gwp = gwp * kgToLbsConversion / (galToMMBTUConversion * BTUtoMJ * 1e6); // 1 MMBTU = 1055.06 MJ
     }
 
-    tons = tons.toFixed(0);
-    ethanol = ethanol.toFixed(3);
-    price = price.toFixed(3);
-    gwp = gwp.toFixed(3);
+    tons = toSigFigs(tons);
+    ethanol = toSigFigs(ethanol);
+    price = toSigFigs(price);
+    gwp = toSigFigs(gwp);
 
     // return the values
     return {tons, ethanol, price, gwp}; // return the values in an array

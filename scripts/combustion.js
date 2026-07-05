@@ -394,20 +394,20 @@ function reformDataPerUnits(data){
     switch (wasteTypeUnit) {
         case "tons":
             mass = mass * (24*365) / shortTonsToKg; // convert to US short tons
-            mass = mass.toFixed(0); // since it is a big number, round it to 0 decimal places
+            mass = toSigFigs(mass);
             break;
         case "tonnes":
             mass = mass * (24*365) / 1000; // convert to metric tonnes
-            mass = mass.toFixed(0); // since it is a big number, round it to 0 decimal places
+            mass = toSigFigs(mass);
             break;
         case "mgd":
             mass = (mass * 24)/(MGDtokg); // convert to MGD
-            mass = mass.toFixed(3); // round to 3 decimal places
+            mass = toSigFigs(mass);
             break;
         case "m3d":
             mass = (mass * 24)/(MGDtokg); // convert to MGD
             mass = mass * galToM3 * 1e6; // convert to m3/d
-            mass = mass.toFixed(0); // round to 0 decimal places
+            mass = toSigFigs(mass);
             break;
     }
 
@@ -428,9 +428,9 @@ function reformDataPerUnits(data){
     }
 
     percent = percent * 100; // convert to percentage
-    percent = percent.toFixed(2); // round to 2 decimal places
-    electricity = electricity.toFixed(3); // round to 3 decimal places
-    emissions = emissions.toFixed(3); // round to 3 decimal places
+    percent = toSigFigs(percent);
+    electricity = toSigFigs(electricity);
+    emissions = toSigFigs(emissions);
 
     return {mass, electricity, emissions, percent}; // return the reformatted data
 }

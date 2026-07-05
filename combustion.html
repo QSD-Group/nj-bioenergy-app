@@ -10,9 +10,6 @@
 
 <body>
 
-    <!-- OUTAGE NOTICE: see assets/outage-notice.html for removal instructions -->
-    <div id="outage-notice-placeholder"></div>
-
     <!-- Header and NavBar -->
     <div id="navbar-placeholder"></div>
 
@@ -28,40 +25,7 @@
     <!-- imperial/metric button -->
     <div class="tab-container" id="unitbutton-placeholder"></div>
 
-    <!-- Info Top container -->
-    <div class="container">
-        <div id="info" class="info-div">
-            <p id="info">
-                <b><span id="completeCountySpan"><span id="wastetype-name">Food Waste</span> in <span id="countyName"></span>County</span></b>
-                <span class="info-icon">ℹ️<span class="tooltip">County name where the waste is processed</span></span><br>
-    
-                <b><span id="wastetype-unit">Food:</span></b> <span id="wastetype"></span>
-                <select id="wastetype-units" class="unit-select" onchange="updateUnits()">
-                    <option value="tons">short tons</option>
-                    <option value="tonnes">metric tonnes</option>
-                </select>
-                <span class="info-icon">ℹ️<span class="tooltip" id="wastetype-tool">US Short Tons (2000 lbs) used for measuring waste</span></span><br>
-    
-                <b><span id="electricity-unit">Annual Electricity:</span></b> <span id="electricity"></span>
-                <select id="electricity-units" class="unit-select" onchange="updateUnits()">
-                    <option value="mwh">megawatt</option>
-                </select>
-                <span class="info-icon">ℹ️<span class="tooltip" id="electricity-tool">Megawatt hours of electricity annually generated</span></span><br>
-    
-                <b><span id="emissions-unit">Avoided Emissions:</span></b> <span id="emissions"></span>
-                <select id="emissions-units" class="unit-select" onchange="updateUnits()">
-                    <option value="tons">short tons</option>
-                    <option value="tonnes">metric tonnes</option>
-                </select>
-                <span class="info-icon">ℹ️<span class="tooltip" id="emissions-tool">US Short Tons (2000 lbs) are used for measuring the annual lignocellulose</span></span><br>
-    
-                <b><span id="percent-unit">Avoided Emissions Percentage:</span></b> <span id="percent"></span>  %
-                <span class="info-icon">ℹ️<span class="tooltip" id="percent-tool">US Short Tons (2000 lbs) are used for measuring the annual lignocellulose</span></span><br>
-            </p>
-        </div>
-    </div>
-
-    <!-- Waste type selector -->
+    <!-- Waste type selector (feeds both county and manual calculations; stays visible regardless of mode) -->
     <div class="tab-container" id="wastetype-placeholder">
         <input type="radio" id="food" name="wastetype" value="food" checked>
         <label for="food" class="tab-label" onclick="selectWasteType('food')">Food Waste</label>
@@ -79,86 +43,134 @@
         <label for="manure" class="tab-label" onclick="selectWasteType('manure')">Manure</label>
 
     </div>
-        
-    
-    <!-- Map -->
-    <div id="mapContainer"></div>
 
-    <!-- Export Options -->
-    <div class="export-container" id="export-container"></div>
+    <!-- county vs. manual mode toggle -->
+    <div class="tab-container" id="mode-toggle">
+        <input type="radio" id="mode-county" name="mode" value="county" checked>
+        <label for="mode-county" class="tab-label" onclick="selectMode('county')">By County</label>
 
-    <!-- Compare Two Counties -->
-    <div class="collapsible-container" id="compare">
-        <h3 class="collapsible-header"> 
-            <span>Compare Two Counties </span>
-            <span class="arrow">&#9660;</span>
-        </h3>
-        <div class="collapsible-content">
-            <table>
-                <thead>
-                    <tr>
-                        <th></th>
-                        <th>Annual <span id="r0-wastetype">Food Waste </span> <span id="r0-wasteunit">(tons)</span> </th>
-                        <th id="r0-electricity">Annual Electricity (MWh)</th>
-                        <th id="r0-emissions">Avoided CO2 Emissions (tons)</th>
-                        <th id="r0-percent">Avoided Emissions Percentage (%)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td class="f-col" id="r1-name"> County 1</td>
-                        <td id="r1-waste">0</td>
-                        <td id="r1-electricity">0</td>
-                        <td id="r1-emissions">0</td>
-                        <td id="r1-percent">0%</td>
-                    </tr>
-                    <tr>
-                        <td class="f-col" id="r2-name">County 2</td>
-                        <td id="r2-waste">0</td>
-                        <td id="r2-electricity">0</td>
-                        <td id="r2-emissions">0</td>
-                        <td id="r2-percent">0%</td>
-                    </tr>
-                </tbody>
-            </table>
+        <input type="radio" id="mode-manual" name="mode" value="manual">
+        <label for="mode-manual" class="tab-label" onclick="selectMode('manual')">Enter My Own Numbers</label>
+    </div>
+
+    <div id="simulationStatus" class="sim-status"></div>
+    <p class="sim-caveat">Simulations can take a few seconds; the first one after a period of inactivity may take up to a minute while the server wakes up.</p>
+
+    <div id="county-mode-panel">
+        <!-- Info Top container -->
+        <div class="container">
+            <div id="info" class="info-div">
+                <p id="info">
+                    <b><span id="completeCountySpan"><span id="wastetype-name">Food Waste</span> in <span id="countyName"></span>County</span></b>
+                    <span class="info-icon">ℹ️<span class="tooltip">County name where the waste is processed</span></span><br>
+
+                    <b><span id="wastetype-unit">Food:</span></b> <span id="wastetype"></span>
+                    <select id="wastetype-units" class="unit-select" onchange="updateUnits()">
+                        <option value="tons">short tons</option>
+                        <option value="tonnes">metric tonnes</option>
+                    </select>
+                    <span class="info-icon">ℹ️<span class="tooltip" id="wastetype-tool">US Short Tons (2000 lbs) used for measuring waste</span></span><br>
+
+                    <b><span id="electricity-unit">Annual Electricity:</span></b> <span id="electricity"></span>
+                    <select id="electricity-units" class="unit-select" onchange="updateUnits()">
+                        <option value="mwh">megawatt</option>
+                    </select>
+                    <span class="info-icon">ℹ️<span class="tooltip" id="electricity-tool">Megawatt hours of electricity annually generated</span></span><br>
+
+                    <b><span id="emissions-unit">Avoided Emissions:</span></b> <span id="emissions"></span>
+                    <select id="emissions-units" class="unit-select" onchange="updateUnits()">
+                        <option value="tons">short tons</option>
+                        <option value="tonnes">metric tonnes</option>
+                    </select>
+                    <span class="info-icon">ℹ️<span class="tooltip" id="emissions-tool">US Short Tons (2000 lbs) are used for measuring the annual lignocellulose</span></span><br>
+
+                    <b><span id="percent-unit">Avoided Emissions Percentage:</span></b> <span id="percent"></span>  %
+                    <span class="info-icon">ℹ️<span class="tooltip" id="percent-tool">US Short Tons (2000 lbs) are used for measuring the annual lignocellulose</span></span><br>
+                </p>
+            </div>
+        </div>
+
+        <!-- Map -->
+        <div id="mapContainer"></div>
+
+        <!-- Export Options -->
+        <div class="export-container" id="export-container"></div>
+
+        <!-- Compare Two Counties -->
+        <div class="collapsible-container" id="compare">
+            <h3 class="collapsible-header">
+                <span>Compare Two Counties </span>
+                <span class="arrow">&#9660;</span>
+            </h3>
+            <div class="collapsible-content">
+                <table>
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Annual <span id="r0-wastetype">Food Waste </span> <span id="r0-wasteunit">(tons)</span> </th>
+                            <th id="r0-electricity">Annual Electricity (MWh)</th>
+                            <th id="r0-emissions">Avoided CO2 Emissions (tons)</th>
+                            <th id="r0-percent">Avoided Emissions Percentage (%)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="f-col" id="r1-name"> County 1</td>
+                            <td id="r1-waste">0</td>
+                            <td id="r1-electricity">0</td>
+                            <td id="r1-emissions">0</td>
+                            <td id="r1-percent">0%</td>
+                        </tr>
+                        <tr>
+                            <td class="f-col" id="r2-name">County 2</td>
+                            <td id="r2-waste">0</td>
+                            <td id="r2-electricity">0</td>
+                            <td id="r2-emissions">0</td>
+                            <td id="r2-percent">0%</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
-
     <!-- Manual Mass Input Calculator -->
-    <div class="form-container">
+    <div id="manual-mode-panel" style="display:none">
+        <div class="form-container">
 
-        <h3> Calculate the electricity by manual input </h3>
-        <label for="manualInput">Enter annual dry mass produced in <span id="m-wastetype">food waste</span> to be processed:</label>
-        <div id="form-container-input">
-            <input type="number" id="manualInput" name="manualInput" placeholder="1-1,000,000" min="1" max="1000000" required>
-            <select id="m-wastetype-units" class="unit-select" onchange="updateUnitsForManual()">
-                <option value="tons">short tons</option>
-                <option value="tonnes">metric tonnes</option>
-            </select>
+            <h3> Calculate the electricity by manual input </h3>
+            <label for="manualInput">Enter annual dry mass produced in <span id="m-wastetype">food waste</span> to be processed:</label>
+            <div id="form-container-input">
+                <input type="number" id="manualInput" name="manualInput" placeholder="1-1,000,000" min="1" max="1000000" onkeydown="filterDigitKeys(event)" oninput="validateManualInput()" required>
+                <select id="m-wastetype-units" class="unit-select" onchange="updateUnitsForManual()">
+                    <option value="tons">short tons</option>
+                    <option value="tonnes">metric tonnes</option>
+                </select>
+            </div>
+            <div id="manualInputHint" class="input-hint"></div>
+            <button class="btn-class" onclick="clickManual()" id="manualBox" disabled>Submit</button>
+            <div id="manualInfoOutput">
+                <b>Annual Electricity: </b><span id="m-electricity">0</span>
+                <select id="m-electricity-units" class="unit-select" onchange="updateUnitsForManual()">
+                    <option value="mwh">megawatt</option>
+                </select>
+                <br>
+
+                <b>Avoided Emissions: </b><span id="m-emissions">0</span>
+                <select id="m-emissions-units" class="unit-select" onchange="updateUnitsForManual()">
+                    <option value="tons">short tons</option>
+                    <option value="tonnes">metric tonnes</option>
+                </select>
+                <br>
+
+                <b>Avoided Emissions Percentage: </b><span id="m-percent">0</span> %
+                <br>
+            </div>
+            <div id="errorManual">
+                <b> </b>
+            </div>
+
         </div>
-        <button class="btn-class" onclick="clickManual()" id="manualBox">Submit</button>
-        <div id="manualInfoOutput">
-            <b>Annual Electricity: </b><span id="m-electricity">0</span>
-            <select id="m-electricity-units" class="unit-select" onchange="updateUnitsForManual()">
-                <option value="mwh">megawatt</option>
-            </select>
-            <br>
-
-            <b>Avoided Emissions: </b><span id="m-emissions">0</span>
-            <select id="m-emissions-units" class="unit-select" onchange="updateUnitsForManual()">
-                <option value="tons">short tons</option>
-                <option value="tonnes">metric tonnes</option>
-            </select>
-            <br>
-
-            <b>Avoided Emissions Percentage: </b><span id="m-percent">0</span> %
-            <br>
-        </div>
-        <div id="errorManual">
-            <b> </b>
-        </div>
-
     </div>
 
     <script src="script.js"></script>

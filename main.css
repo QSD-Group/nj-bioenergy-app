@@ -427,20 +427,36 @@ input {
     }
 }
 
-/* outage notice — see assets/outage-notice.html for removal instructions.
-   Named "outage-notice", not "banner": ad-blocker cosmetic filters commonly
-   target id/class names containing "banner" and will remove the element. */
-.outage-notice {
-    width: 100%;
-    box-sizing: border-box;
-    background-color: #fff3cd;
-    color: #664d03;
-    border-bottom: 1px solid #ffe69c;
-    text-align: center;
-    padding: 10px 20px;
-    font-size: 15px;
+/* manual input hint and disabled submit state */
+.input-hint {
+    color: rgb(255, 255, 255);
+    opacity: 0.8;
+    font-size: 13px;
+    min-height: 1.2em;
 }
 
-.outage-notice-icon {
-    margin-right: 6px;
+#manualBox:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+#manualBox:disabled:hover {
+    background-color: #007BFF;
+}
+
+/* simulation-in-progress status and cold-start caveat */
+.sim-status {
+    color: white;
+    font-weight: bold;
+    text-align: center;
+    min-height: 1.2em;
+    margin-top: 10px;
+}
+
+.sim-caveat {
+    color: white;
+    opacity: 0.8;
+    font-size: 13px;
+    text-align: center;
+    margin: 5px 0 15px;
 }

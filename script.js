@@ -1,3 +1,10 @@
+// Round to a sensible number of significant figures for on-screen display
+function toSigFigs(value, sigFigs = 3) {
+    const num = Number(value);
+    if (num === 0) return '0';
+    return Number(num.toPrecision(sigFigs)).toString();
+}
+
 // Retry a fetch up to `retries` times with `delay` ms between attempts
 async function fetchWithRetry(url, retries = 3, delay = 2000) {
     for (let i = 0; i < retries; i++) {
@@ -19,14 +26,6 @@ async function fetchWithRetry(url, retries = 3, delay = 2000) {
 
 // load sidebar/navbar
 document.addEventListener('DOMContentLoaded', function() {
-    // === OUTAGE NOTICE — remove this block once the Lambda cutover is live and the backend is serving again ===
-    fetch('assets\\outage-notice.html')
-        .then(response => response.text())
-        .then(data => {
-            document.getElementById('outage-notice-placeholder').innerHTML = data;
-        });
-    // === END OUTAGE NOTICE ===
-
     // Fetch the navbar
     fetch('assets\\navbar.html')
         .then(response => response.text())
@@ -73,6 +72,14 @@ var currentCountyData = null; // current county data
 var previousCountyData = null; // previous county data (for comparison)
 
 var manualData = null; // manual data input
+
+// county map vs. manual number entry
+var currentMode = 'county';
+function selectMode(mode) {
+    currentMode = mode;
+    document.getElementById('county-mode-panel').style.display = mode === 'county' ? '' : 'none';
+    document.getElementById('manual-mode-panel').style.display = mode === 'manual' ? '' : 'none';
+}
 
 // imperial/metric button
 var unit = null;
@@ -121,16 +128,21 @@ function attachEventListenersToMap() {
         });
 
         e.addEventListener("click", function () {
+            if (simulationInProgress) return;
+
             if (currentCounty == null){
                 console.log("I'm here at one!")
 
                 currentCounty = e.id;
 
+                setSimulationInProgress(true);
                 getInfo(currentCounty).then(currentCountyData => {
+                    setSimulationInProgress(false);
                     console.log(currentCountyData); // This should log the data returned by getInfo
                     displayInfoTop(currentCountyData);
-                    displayComparison(currentCountyData, null);        
+                    displayComparison(currentCountyData, null);
                 }).catch(error => {
+                    setSimulationInProgress(false);
                     console.error('Error fetching data:', error);
                 });
 
@@ -144,11 +156,14 @@ function attachEventListenersToMap() {
 
                 currentCounty = e.id;
 
+                setSimulationInProgress(true);
                 getInfo(currentCounty).then(currentCountyData => {
+                    setSimulationInProgress(false);
                     console.log(currentCountyData); // This should log the data returned by getInfo
                     displayInfoTop(currentCountyData);
-                    displayComparison(previousCountyData, currentCountyData);    
+                    displayComparison(previousCountyData, currentCountyData);
                 }).catch(error => {
+                    setSimulationInProgress(false);
                     console.error('Error fetching data:', error);
                 });
 
@@ -162,11 +177,14 @@ function attachEventListenersToMap() {
 
                 currentCounty = e.id;
 
+                setSimulationInProgress(true);
                 getInfo(currentCounty).then(currentCountyData => {
+                    setSimulationInProgress(false);
                     console.log(currentCountyData); // This should log the data returned by getInfo
                     displayInfoTop(currentCountyData);
-                    displayComparison(currentCountyData, null);    
+                    displayComparison(currentCountyData, null);
                 }).catch(error => {
+                    setSimulationInProgress(false);
                     console.error('Error fetching data:', error);
                 });
 
@@ -191,8 +209,40 @@ document.addEventListener('DOMContentLoaded', () => {
 
 });
 
+// simulation-in-progress lock, shared by the map click handler and clickManual()
+var simulationInProgress = false;
+function setSimulationInProgress(inProgress) {
+    simulationInProgress = inProgress;
+    const status = document.getElementById('simulationStatus');
+    if (status) status.innerHTML = inProgress ? 'Running simulation…' : '';
+}
+
+// keystroke filter for the manual-number input: only digits and navigation keys pass through
+function filterDigitKeys(event) {
+    if (event.ctrlKey || event.metaKey) return;
+    const allowed = ['Backspace', 'Delete', 'Tab', 'ArrowLeft', 'ArrowRight', 'Home', 'End'];
+    if (allowed.includes(event.key)) return;
+    if (!/^[0-9]$/.test(event.key)) event.preventDefault();
+}
+
+// live range/integer check for the manual-number input; toggles Submit and the inline hint
+function validateManualInput() {
+    const input = document.getElementById('manualInput');
+    const value = Number(input.value);
+    const min = Number(input.min);
+    const max = Number(input.max);
+    const valid = input.value !== '' && Number.isInteger(value) && value >= min && value <= max;
+    document.getElementById('manualBox').disabled = !valid;
+    document.getElementById('manualInputHint').innerHTML = valid
+        ? ''
+        : `Enter a whole number between ${min} and ${max}`;
+    return valid;
+}
+
 // For the manual input button
 function clickManual() {
+    if (simulationInProgress) return;
+
     const manualInput = document.getElementById("manualInput").value;
     const manualInputInt = Number(manualInput);
 
@@ -206,11 +256,14 @@ function clickManual() {
 
     document.getElementById("errorManual").innerHTML = "<b></b>"; // clear the error message
 
+    setSimulationInProgress(true);
     getManualInfo(manualInputInt).then(manualDataObtained => {
+        setSimulationInProgress(false);
         manualData = manualDataObtained;
         console.log(manualData); // This should log the data returned by getManualInfo
         displayManualInfo(manualData);
     }).catch(error => {
+        setSimulationInProgress(false);
         document.getElementById("errorManual").innerHTML = `<span class='error'> Error fetching data: ${error} </span>`;
         console.error('Error fetching data:', error);
     });
